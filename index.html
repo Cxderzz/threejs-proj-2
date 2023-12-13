@@ -5,17 +5,36 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <link rel="stylesheet" href="style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <title>Home | Reimagined Solutions</title>
   </head>
   <body>
     <div class="webgl"></div>
-    <nav>
-      <a href="/">Sphere</a>
-      <ul>
-        <li>Explore</li>
-        <li>Create</li>
-      </ul>
-    </nav>
+    <main>
+      <nav>
+        <img src="models/reimagined.png" class="mainlogo" />
+        <ul>
+          <li class="active">Home</li>
+          <li>Technology</li>
+          <li>Services</li>
+          <li>Projects</li>
+          <li>About</li>
+        </ul>
+      </nav>
+      <section class="hero-textarea">
+        <h1 id="hero-main-text">
+          Let's <span class="accent">reimagine</span> that dream project.
+        </h1>
+        <p id="hero-sub-text">
+          Innovative technology solutions that prioritize people, catering to
+          the needs of Queensland's communities.
+        </p>
+        <div id="hero-button-list">
+          <button id="hero-button">Tell me more</button>
+          <button id="hero-button-empty">Get a call back &rarr;</button>
+        </div>
+      </section>
+      <section class="hero-arrow"><p>&darr;</p></section>
+    </main>
     <h1 class="title">Give it a spin</h1>
     <script type="module" src="/main4.js"></script>
   </body>
