@@ -4,15 +4,47 @@ import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.114/examples
 import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.114/examples/jsm/loaders/GLTFLoader.js";
 import { RGBELoader } from "https://cdn.jsdelivr.net/npm/three@0.114/examples/jsm/loaders/RGBELoader.js";
 
+// Shaders
+import { ShaderPass } from "https://unpkg.com/three@0.116.1/examples/jsm/postprocessing/ShaderPass.js";
+import { RenderPass } from "//unpkg.com/three@0.116.1/examples/jsm/postprocessing/RenderPass.js";
+import { FilmGrainShader } from "./FilmGrainShader.js";
+import { LensDistortionShader } from "./LensDistortionShader.js";
+import { FXAAShader } from "//unpkg.com/three@0.116.1/examples/jsm/shaders/FXAAShader.js";
+import { GammaCorrectionShader } from "//unpkg.com/three@0.116.1/examples/jsm/shaders/GammaCorrectionShader.js";
+import { EffectComposer } from "//unpkg.com/three@0.116.1/examples/jsm/postprocessing/EffectComposer.js";
+import { CopyShader } from "//unpkg.com/three@0.116.1/examples/jsm/shaders/CopyShader.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
 var container, controls;
 var camera, scene, renderer, mixer, clock;
 var portalObject;
 let eventListenerActive = false;
 // Add event listener for mousemove
+var renderPass, distortPass, grainPass, gammaPass, fxaaPass;
+var composer;
+var mesh;
+var params = {
+  enableNoise: true,
+  noiseSpeed: 0.02,
+  noiseIntensity: 0.025,
+
+  enableDistortion: true,
+  baseIor: 0.8,
+  bandOffset: 0.003,
+  jitterIntensity: 1.0,
+  samples: 7,
+  distortionMode: "rygcbv",
+  threshold: 0.5,
+  strength: 0.01,
+  radius: 0,
+  exposure: 0.01,
+};
+const textureMap = {};
 
 init();
 animate();
-
+// animate_dos();
 function init() {
   container = document.querySelector(".webgl");
   // run mouse enter event listener
@@ -30,6 +62,7 @@ function init() {
 
   var loader = new GLTFLoader();
   loader.load("models/SorensTHing_1.glb", function (gltf) {
+    // render();
     portalObject = gltf.scene;
     scene.add(portalObject);
     portalObject.position.x = 0;
@@ -91,19 +124,51 @@ function init() {
 
   // const loaderBg = new THREE.TextureLoader();
   // scene.background = loaderBg.load("models/bg.png");
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  // var material = new THREE.MeshBasicMaterial({
+  //   side: THREE.DoubleSide,
+  // });
+  // const planeGeometry = new THREE.PlaneBufferGeometry();
+  // mesh = new THREE.Mesh(planeGeometry, material);
+  // scene.add(mesh);
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(document.body.clientWidth, window.innerHeight);
-  // renderer.setClearColor(0x000000, 0);
+  renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.8;
   renderer.outputEncoding = THREE.sRGBEncoding;
   container.appendChild(renderer.domElement);
+  scene.add(new THREE.AmbientLight(0xcccccc));
 
   var pmremGenerator = new THREE.PMREMGenerator(renderer);
   pmremGenerator.compileEquirectangularShader();
+  renderPass = new RenderPass(scene, camera);
+  grainPass = new ShaderPass(FilmGrainShader);
+  gammaPass = new ShaderPass(GammaCorrectionShader);
+  fxaaPass = new ShaderPass(FXAAShader);
+  distortPass = new ShaderPass(LensDistortionShader);
+  distortPass.material.defines.CHROMA_SAMPLES = params.samples;
+  const bloomPass = new UnrealBloomPass(
+    new THREE.Vector2(window.innerWidth, window.innerHeight),
+    1.5,
+    0.4,
+    0.85
+  );
+  bloomPass.threshold = params.threshold;
+  bloomPass.strength = params.strength;
+  bloomPass.radius = params.radius;
 
+  const outputPass = new OutputPass();
+  composer = new EffectComposer(renderer);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  composer.setPixelRatio(window.devicePixelRatio);
+  composer.addPass(renderPass);
+  composer.addPass(gammaPass);
+  composer.addPass(fxaaPass);
+  composer.addPass(distortPass);
+  composer.addPass(grainPass);
+  // composer.addPass(bloomPass);
+  // composer.addPass(outputPass);
   // controls = new OrbitControls(camera, renderer.domElement);
   // controls.minDistance = 2;
   // controls.maxDistance = 10;
@@ -190,6 +255,7 @@ function onMouseEnterHandler() {
 function animate() {
   // controls.update();
   requestAnimationFrame(animate);
+
   // if (container.matches(":hover") && eventListenerActive == false) {
   //   console.log("run event listener");
   //   window.addEventListener("mousemove", onMouseMove, false);
@@ -199,8 +265,37 @@ function animate() {
   // } else {
   //   console.log("you failed");
   // }
+  render();
   var delta = clock.getDelta();
 
   if (mixer) mixer.update(delta);
+}
+
+function render() {
+  grainPass.enabled = true;
+  grainPass.material.uniforms.noiseOffset.value += 0.0168;
+  grainPass.material.uniforms.intensity.value = 0.025;
+
+  distortPass.enabled = true;
+  distortPass.material.uniforms.baseIor.value = 0.97;
+  distortPass.material.uniforms.bandOffset.value = 0.004;
+  distortPass.material.uniforms.jitterOffset.value += 0.01;
+  distortPass.material.uniforms.jitterIntensity.value = 0;
+
+  // const tex =
+  //   textureMap[params.image] ||
+  //   new THREE.TextureLoader().load(`models/bg.png`, () => {
+  //     tex.needsUpdate = true;
+  //   });
+  // mesh.material.map = tex;
+
+  // if (tex.image) {
+  //   const aspect = tex.image.width / tex.image.height;
+  //   mesh.scale.set(7 * aspect, 7, 1);
+  // }
+
+  // composer.render();
+
   renderer.render(scene, camera);
+  composer.render();
 }
