@@ -10,6 +10,9 @@ html {
   overflow-x: hidden;
 }
 
+main {
+}
+
 .webgl {
   position: absolute;
   z-index: -1;
@@ -18,9 +21,17 @@ html {
   overflow-x: hidden;
   left: 0;
   top: 0;
-  background-image: url("models/bg.png");
+  /* background-image: url("models/bg.png"); */
 }
-
+.loading-bg {
+  position: absolute;
+  background-color: black;
+  width: 100vw;
+  height: 100vh;
+  z-index: -2;
+  left: 0;
+  top: 0;
+}
 .title {
   margin-top: 150vh;
 }
