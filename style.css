@@ -136,3 +136,42 @@ main {
   justify-content: center;
   padding-bottom: 1.1rem;
 }
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-25px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+.box {
+  animation-duration: 1.5s;
+  animation-iteration-count: infinite;
+  margin: 0 auto 0 auto;
+  transform-origin: bottom;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #8a68eb;
+  color: white;
+  font-family: Inter, "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  text-decoration: none;
+  font-size: 1.125rem;
+  font-weight: bold;
+}
+
+.bounce11 {
+  animation-name: bounce;
+  animation-timing-function: linear;
+}
+.bounce11:hover {
+  -moz-animation-play-state: paused;
+  -webkit-animation-play-state: paused;
+  animation-play-state: paused;
+}

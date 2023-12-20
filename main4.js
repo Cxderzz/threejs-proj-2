@@ -74,7 +74,7 @@ function init() {
   //     // model
   //   });
 
-  // // Load the background texture
+  // Load the background texture
   // var textureOne = THREE.ImageUtils.loadTexture("bg.png");
   // var backgroundMesh = new THREE.Mesh(
   //   new THREE.PlaneGeometry(2, 2, 0),
@@ -83,8 +83,8 @@ function init() {
   //   })
   // );
 
-  // backgroundMesh.material.depthTest = false;
-  // backgroundMesh.material.depthWrite = false;
+  // // backgroundMesh.material.depthTest = false;
+  // // backgroundMesh.material.depthWrite = false;
 
   // // Create your background scene
   // scene.add(backgroundMesh);
@@ -95,6 +95,7 @@ function init() {
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(document.body.clientWidth, window.innerHeight);
+  // renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.8;
   renderer.outputEncoding = THREE.sRGBEncoding;
